@@ -54,7 +54,6 @@ ImageProjection::ImageProjection(ros::NodeHandle& nh,
   nh.getParam("/lego_loam/laser/num_vertical_scans", _vertical_scans);
   nh.getParam("/lego_loam/laser/num_horizontal_scans", _horizontal_scans);
   nh.getParam("/lego_loam/laser/vertical_angle_bottom", _ang_bottom);
-  float vertical_angle_top;
   nh.getParam("/lego_loam/laser/vertical_angle_top", vertical_angle_top);
 
   _ang_resolution_X = (M_PI*2) / (_horizontal_scans);
@@ -71,11 +70,14 @@ ImageProjection::ImageProjection(ros::NodeHandle& nh,
   nh.getParam("/lego_loam/imageProjection/segment_valid_line_num",
               _segment_valid_line_num);
 
-  nh.getParam("/lego_loam/laser/ground_scan_index",
+  nh.getParam("/lego_loam/imageProjection/ground_scan_index",
               _ground_scan_index);
 
   nh.getParam("/lego_loam/laser/sensor_mount_angle",
               _sensor_mount_angle);
+
+	nh.getParam("lego_loam/imageProjection/ground_points_angle_threshold",
+							ground_points_angle_threshold);
   _sensor_mount_angle *= DEG_TO_RAD;
 
   const size_t cloud_size = _vertical_scans * _horizontal_scans;
@@ -218,34 +220,39 @@ void ImageProjection::findStartEndAngle() {
 }
 
 void ImageProjection::groundRemoval() {
-  // _ground_mat
-  // -1, no valid info to check if ground of not
-  //  0, initial value, after validation, means not ground
-  //  1, ground
   for (size_t j = 0; j < _horizontal_scans; ++j) {
-    for (size_t i = 0; i < _ground_scan_index; ++i) {
-      size_t lowerInd = j + (i)*_horizontal_scans;
-      size_t upperInd = j + (i + 1) * _horizontal_scans;
+    for (size_t i = 1; i < _ground_scan_index; ++i) {
+			size_t lowerInd = j + (i - 1) * _horizontal_scans; //p2
+      size_t middleInd = j + (i)*_horizontal_scans; //p1
+      size_t upperInd = j + (i + 1) * _horizontal_scans; //p3
 
       if (_full_cloud->points[lowerInd].intensity == -1 ||
-          _full_cloud->points[upperInd].intensity == -1) {
+          _full_cloud->points[upperInd].intensity == -1 || 
+					_full_cloud->points[middleInd].intensity == -1) {
         // no info to check, invalid points
         _ground_mat(i, j) = -1;
         continue;
       }
 
-      float dX =
-          _full_cloud->points[upperInd].x - _full_cloud->points[lowerInd].x;
-      float dY =
-          _full_cloud->points[upperInd].y - _full_cloud->points[lowerInd].y;
-      float dZ =
-          _full_cloud->points[upperInd].z - _full_cloud->points[lowerInd].z;
+			float del_x12 = _full_cloud->points[middleInd].x - _full_cloud->points[lowerInd].x;
+			float del_x13 = _full_cloud->points[middleInd].x - _full_cloud->points[upperInd].x;
+			float del_x23 = _full_cloud->points[lowerInd].x - _full_cloud->points[upperInd].x;
+			float del_y12 = _full_cloud->points[middleInd].y - _full_cloud->points[lowerInd].y;
+			float del_y13 = _full_cloud->points[middleInd].y - _full_cloud->points[upperInd].y;
+			float del_y23 = _full_cloud->points[lowerInd].y - _full_cloud->points[upperInd].y;
+			float del_z12 = _full_cloud->points[middleInd].z - _full_cloud->points[lowerInd].z;
+			float del_z13 = _full_cloud->points[middleInd].z - _full_cloud->points[upperInd].z;
+			float del_z23 = _full_cloud->points[lowerInd].z - _full_cloud->points[upperInd].z;
 
-      float vertical_angle = std::atan2(dZ , sqrt(dX * dX + dY * dY + dZ * dZ));
+			float dis_12 = sqrt(del_x12 * del_x12 + del_y12 * del_y12 + del_z12 * del_z12);
+			float dis_13 = sqrt(del_x13 * del_x13 + del_y13 * del_y13 + del_z13 * del_z13);
+			float dis_23 = sqrt(del_x23 * del_x23 + del_y23 * del_y23 + del_z23 * del_z23);
+			
+			float points_angle = acos((dis_12*dis_12 + dis_13 * dis_13 - dis_23 * dis_23) / (2 * dis_12 * dis_13));
+			
 
-      // TODO: review this change
-
-      if ( (vertical_angle - _sensor_mount_angle) <= 10 * DEG_TO_RAD) {
+      if (abs(points_angle-M_PI) <= ground_points_angle_threshold * DEG_TO_RAD) {
+				_ground_mat(i - 1, j) = 1;
         _ground_mat(i, j) = 1;
         _ground_mat(i + 1, j) = 1;
       }
