@@ -70,6 +70,13 @@ FeatureAssociation::FeatureAssociation(ros::NodeHandle &node,
 
   nh.getParam("/lego_loam/featureAssociation/edge_threshold", _edge_threshold);
   nh.getParam("/lego_loam/featureAssociation/surf_threshold", _surf_threshold);
+  nh.getParam("/lego_loam/featureAssociation/sharp_points", _sharp_points);
+  nh.getParam("/lego_loam/featureAssociation/less_sharp_points", _less_sharp_points);
+  nh.getParam("/lego_loam/featureAssociation/flat_points", _flat_points);
+  nh.getParam("/lego_loam/featureAssociation/edge_iterations", _edge_iterations);
+  nh.getParam("/lego_loam/featureAssociation/surf_iterations", _surf_iterations);
+  nh.getParam("/lego_loam/featureAssociation/convergent_rotation", _convergent_rotation);
+  nh.getParam("/lego_loam/featureAssociation/convergent_translation", _convergent_translation);
 
   nh.getParam("/lego_loam/mapping/mapping_frequency_divider", _mapping_frequency_div);
 
@@ -275,11 +282,11 @@ void FeatureAssociation::extractFeatures() {
             cloudCurvature[ind] > _edge_threshold &&
             segInfo.segmentedCloudGroundFlag[ind] == false) {
           largestPickedNum++;
-          if (largestPickedNum <= 2) {
+          if (largestPickedNum <= _sharp_points) {
             cloudLabel[ind] = 2;
             cornerPointsSharp->push_back(segmentedCloud->points[ind]);
             cornerPointsLessSharp->push_back(segmentedCloud->points[ind]);
-          } else if (largestPickedNum <= 20) {
+          } else if (largestPickedNum <= _less_sharp_points) {
             cloudLabel[ind] = 1;
             cornerPointsLessSharp->push_back(segmentedCloud->points[ind]);
           } else {
@@ -320,7 +327,7 @@ void FeatureAssociation::extractFeatures() {
           surfPointsFlat->push_back(segmentedCloud->points[ind]);
 
           smallestPickedNum++;
-          if (smallestPickedNum >= 4) {
+          if (smallestPickedNum >= _flat_points) {
             break;
           }
 
@@ -826,7 +833,7 @@ bool FeatureAssociation::calculateTransformationSurf(int iterCount) {
                       pow(RAD2DEG * (matX(1, 0)), 2));
   float deltaT = sqrt(pow(matX(2, 0) * 100, 2));
 
-  if (deltaR < 0.1 && deltaT < 0.1) {
+  if (deltaR < _convergent_rotation && deltaT < _convergent_translation) {
     return false;
   }
   return true;
@@ -932,7 +939,7 @@ bool FeatureAssociation::calculateTransformationCorner(int iterCount) {
   float deltaT = sqrt(pow(matX(1, 0) * 100, 2) +
                       pow(matX(2, 0) * 100, 2));
 
-  if (deltaR < 0.1 && deltaT < 0.1) {
+  if (deltaR < _convergent_rotation && deltaT < _convergent_translation) {
     return false;
   }
   return true;
@@ -971,7 +978,7 @@ void FeatureAssociation::checkSystemInitialization() {
 void FeatureAssociation::updateTransformation() {
   if (laserCloudCornerLastNum < 10 || laserCloudSurfLastNum < 100) return;
 
-  for (int iterCount1 = 0; iterCount1 < 25; iterCount1++) {
+  for (int iterCount1 = 0; iterCount1 < _surf_iterations; iterCount1++) {
     laserCloudOri->clear();
     coeffSel->clear();
 
@@ -981,7 +988,7 @@ void FeatureAssociation::updateTransformation() {
     if (calculateTransformationSurf(iterCount1) == false) break;
   }
 
-  for (int iterCount2 = 0; iterCount2 < 25; iterCount2++) {
+  for (int iterCount2 = 0; iterCount2 < _edge_iterations; iterCount2++) {
     laserCloudOri->clear();
     coeffSel->clear();
 

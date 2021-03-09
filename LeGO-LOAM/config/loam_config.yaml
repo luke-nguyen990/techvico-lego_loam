@@ -10,16 +10,23 @@ lego_loam:
         scan_period: 0.1                    # seconds
 
     imageProjection:
-        ground_scan_index: 7
+        ground_scan_index: 7 
         ground_points_angle_threshold: 1 
         segment_valid_point_num: 5
         segment_valid_line_num: 3
-        segment_theta: 60.0                      # decrese this value may improve accuracy
+        segment_theta: 55                       # decrese this value may improve accuracy
 
     featureAssociation:
-        edge_threshold: 0.1
+        edge_threshold: 0.2
         surf_threshold: 0.1
+        sharp_points: 5 
+        less_sharp_points: 80 
+        flat_points: 10 
         nearest_feature_search_distance: 5
+        edge_iterations: 100
+        surf_iterations: 100
+        convergent_rotation: 0.001
+        convergent_translation: 0.001
 
     mapping:
         enable_loop_closure: false

@@ -29,6 +29,13 @@ class FeatureAssociation {
   float _surf_threshold;
   float _nearest_feature_dist_sqr;
   int _mapping_frequency_div;
+  float _sharp_points;
+  float _less_sharp_points;
+  float _flat_points;
+  int _edge_iterations;
+  int _surf_iterations;
+  float _convergent_rotation;
+  float _convergent_translation;
 
   std::thread _run_thread;
 
