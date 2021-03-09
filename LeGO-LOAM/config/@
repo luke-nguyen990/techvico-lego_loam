@@ -10,30 +10,30 @@ lego_loam:
         scan_period: 0.1                    # seconds
 
     imageProjection:
-        ground_scan_index: 5 
-        ground_points_angle_threshold: 35 
-        segment_valid_point_num: 4 
+        ground_scan_index: 4 
+        ground_points_angle_threshold: 10 
+        segment_valid_point_num: 5
         segment_valid_line_num: 3
-        segment_theta: 60                       # decrese this value may improve accuracy
+        segment_theta: 44                       # decrese this value may improve accuracy
 
     featureAssociation:
-        edge_threshold: 0.25
-        surf_threshold: 0.25
+        edge_threshold: 0.2
+        surf_threshold: 0.1
         sharp_points: 11 
-        less_sharp_points: 180 
-        flat_points: 16 
-        nearest_feature_search_distance: 5
-        edge_iterations: 75
-        surf_iterations: 75
-        convergent_rotation: 0.00001
-        convergent_translation: 0.0001
-        use_cube_instead_of_square: true
+        less_sharp_points: 150 
+        flat_points: 22 
+        nearest_feature_search_distance: 7
+        edge_iterations: 1000
+        surf_iterations: 1000
+        convergent_rotation: 0.01
+        convergent_translation: 0.01
+        use_cube_instead_of_square: false
         use_double_square_instead_of_square: true
     mapping:
         enable_loop_closure: false
-        mapping_frequency_divider: 1 
+        mapping_frequency_divider: 5
 
-        surrounding_keyframe_search_radius: 50.0   # key frame that is within n meters from current pose will be
+        surrounding_keyframe_search_radius: 25.0   # key frame that is within n meters from current pose will be
                                                    # considered for scan-to-map optimization (when loop closure disabled)
         surrounding_keyframe_search_num: 50        # submap size (when loop closure enabled)
 

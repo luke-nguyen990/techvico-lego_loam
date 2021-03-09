@@ -77,7 +77,10 @@ FeatureAssociation::FeatureAssociation(ros::NodeHandle &node,
   nh.getParam("/lego_loam/featureAssociation/surf_iterations", _surf_iterations);
   nh.getParam("/lego_loam/featureAssociation/convergent_rotation", _convergent_rotation);
   nh.getParam("/lego_loam/featureAssociation/convergent_translation", _convergent_translation);
-
+  nh.getParam("/lego_loam/featureAssociation/use_cube_instead_of_square", _use_cube_instead_of_square);	
+  nh.getParam("/lego_loam/featureAssociation/use_double_square_instead_of_square", _use_double_square_instead_of_square);
+	
+	
   nh.getParam("/lego_loam/mapping/mapping_frequency_divider", _mapping_frequency_div);
 
   float nearest_dist;
@@ -939,6 +942,14 @@ bool FeatureAssociation::calculateTransformationCorner(int iterCount) {
   float deltaT = sqrt(pow(matX(1, 0) * 100, 2) +
                       pow(matX(2, 0) * 100, 2));
 
+  if (_use_cube_instead_of_square) {
+    deltaR *= pow(RAD2DEG * (matX(0, 0)), 2);
+    deltaT *= pow(matX(1, 0) * 100, 2) + pow(matX(2, 0) * 100, 2);
+  }
+  else if(_use_double_square_instead_of_square) {
+	deltaR *= deltaR;
+	deltaT *= deltaT;
+  }
   if (deltaR < _convergent_rotation && deltaT < _convergent_translation) {
     return false;
   }

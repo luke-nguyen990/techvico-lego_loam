@@ -36,7 +36,8 @@ class FeatureAssociation {
   int _surf_iterations;
   float _convergent_rotation;
   float _convergent_translation;
-
+  bool _use_cube_instead_of_square;
+  bool _use_double_square_instead_of_square;
   std::thread _run_thread;
 
   Channel<ProjectionOut>& _input_channel;

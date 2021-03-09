@@ -487,7 +487,9 @@ pcl::PointCloud<PointType>::Ptr MapOptimization::transformPointCloud(
   return cloudOut;
 }
 
-
+#include <bits/stdc++.h>
+using namespace std;
+auto lastTime = 0;
 void MapOptimization::publishTF() {
   geometry_msgs::Quaternion geoQuat = tf::createQuaternionMsgFromRollPitchYaw(
       transformAftMapped[2], -transformAftMapped[0], -transformAftMapped[1]);
@@ -497,6 +499,7 @@ void MapOptimization::publishTF() {
   odomAftMapped.pose.pose.orientation.y = -geoQuat.z;
   odomAftMapped.pose.pose.orientation.z = geoQuat.x;
   odomAftMapped.pose.pose.orientation.w = geoQuat.w;
+  
   odomAftMapped.pose.pose.position.x = transformAftMapped[3];
   odomAftMapped.pose.pose.position.y = transformAftMapped[4];
   odomAftMapped.pose.pose.position.z = transformAftMapped[5];
@@ -507,6 +510,13 @@ void MapOptimization::publishTF() {
   odomAftMapped.twist.twist.linear.y = transformBefMapped[4];
   odomAftMapped.twist.twist.linear.z = transformBefMapped[5];
   pubOdomAftMapped.publish(odomAftMapped);
+  if(lastTime == 0) {
+	lastTime = 1;
+  cout << "---------------------\n" << endl;
+  cout << "x: " << transformAftMapped[3] << endl;
+  cout << "y: " << transformAftMapped[4] << endl;
+  cout << "z: " << transformAftMapped[5] << endl;
+  }
 
   aftMappedTrans.stamp_ = ros::Time().fromSec(timeLaserOdometry);
   aftMappedTrans.setRotation(
