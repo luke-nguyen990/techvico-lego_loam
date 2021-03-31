@@ -47,8 +47,9 @@ class ImageProjection {
   int _segment_valid_line_num;
   int _ground_scan_index;
   float _sensor_mount_angle;
-	float vertical_angle_top;
-	float ground_points_angle_threshold;
+  float vertical_angle_top;
+  float ground_points_angle_threshold;
+  float rotational_absolute_threshold;
   Channel<ProjectionOut>& _output_channel;
 
   ros::Subscriber _sub_laser_cloud;

@@ -76,8 +76,11 @@ ImageProjection::ImageProjection(ros::NodeHandle& nh,
   nh.getParam("/lego_loam/laser/sensor_mount_angle",
               _sensor_mount_angle);
 
-	nh.getParam("lego_loam/imageProjection/ground_points_angle_threshold",
+  nh.getParam("lego_loam/imageProjection/ground_points_angle_threshold",
 							ground_points_angle_threshold);
+
+  nh.getParam("lego_loam/impageProjection/rotational_absolute_threshold",
+							rotational_absolute_threshold);
   _sensor_mount_angle *= DEG_TO_RAD;
 
   const size_t cloud_size = _vertical_scans * _horizontal_scans;
@@ -153,7 +156,6 @@ void ImageProjection::cloudHandler(
   publishClouds();
 }
 
-
 void ImageProjection::projectPointCloud() {
   // range image projection
   const size_t cloudSize = _laser_cloud_in->points.size();
@@ -178,6 +180,11 @@ void ImageProjection::projectPointCloud() {
 
     int columnIdn = -round((horizonAngle - M_PI_2) / _ang_resolution_X) + _horizontal_scans * 0.5;
 
+	float absDiff = abs(-((horizonAngle - M_PI_2) / _ang_resolution_X) + _horizontal_scans * 0.5 - columnIdn);
+    // to be substituted for rotational_absolute_threshold, this value should be between 0 -> 0.499/
+	if (absDiff > 0.4) { 
+		continue;
+    } 
     if (columnIdn >= _horizontal_scans){
       columnIdn -= _horizontal_scans;
     }
